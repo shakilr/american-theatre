@@ -4,6 +4,9 @@
 <link rel="stylesheet" href="https://pro.fontawesome.com/releases/v5.10.0/css/duotone.css" integrity="sha384-R3QzTxyukP03CMqKFe0ssp5wUvBPEyy9ZspCB+Y01fEjhMwcXixTyeot+S40+AjZ" crossorigin="anonymous"/>
 <link rel="stylesheet" href="https://pro.fontawesome.com/releases/v5.10.0/css/fontawesome.css" integrity="sha384-eHoocPgXsiuZh+Yy6+7DsKAerLXyJmu2Hadh4QYyt+8v86geixVYwFqUvMU8X90l" crossorigin="anonymous"/>
 <style>
+	html {
+  scroll-behavior: smooth !important;
+}
 	.accordion {
 		background-color: #fff;
 		color: #444;
@@ -104,12 +107,12 @@
 		100% { transform: rotate(360deg); }
 	}
 	
-	.row.not_empty.item_3, .row.not_empty.item_4 {
-    display: none !important;
-}
+	.events .event-description {display: block !important;clear: both;margin-top: 40px;}
 </style>
 <?php
-get_header(); 
+get_header(); ?>
+<section id="primary" class="content-area">
+<?php 
 $args 	= array();
 
 $states = array();
@@ -200,15 +203,33 @@ foreach( $data_s as $alpha_char )  {
 }
 
 if ( $aplha_output ) {
-	echo "<ul class=\"pagination\" style=\"margin-left: 175px;\">{$aplha_output}</ul>";
-}
+	echo "<div align=\"center\"> <ul class=\"pagination\" style=\"margin-left: 175px;\">{$aplha_output}</ul> </div>";
+}?>
+<div id="content" class="site-content" role="main">
+			<header class="archive-header" style="float:left">
+				<h1 class="archive-title"><?php printf(__('%s', 'ridizain'), single_cat_title('', false)); ?></h1>
+				<h1 class="archive-title">
+					<?php $from = date("Y",strtotime($from)); $to = date("Y",strtotime($to));  echo $from; echo "-"; echo $to; ?>
+					<?php //print_r($from); exit;?>
+				</h1>
+              <div class="taxonomy-description" data-uw-styling-context="true"><p data-uw-styling-context="true">
+				  <?php echo category_description( get_category_by_slug( 'onstage-now' )->term_id ); ?> 
+</div>
+				
 
-
+				<?php
+				$term_description = term_description();
+				if (!empty($term_description)) :
+					printf('<div class="taxonomy-description">%s</div>', $term_description);
+				endif;
+				?>
+			</header>
+<?php 
 foreach( $data_s as $state )  :
 	
 
 	if ( $last_char !== $state['state'][0] ) {
-		echo $last_char;
+		// echo $last_char;
 		echo '</div>';
 	}
 	
@@ -242,19 +263,25 @@ foreach( $data_s as $state )  :
 										<div class="row details">
 											<div class="col-md-6 description">
 												<p style="font-weight: bold;font-style: italic;"><?php echo get_the_title($post);?></p>
-												<p><span>By: </span>Deneen Reynolds-Knott</p>
-												<p><span>Directed by: </span>Tiffany Nichole Greene</p>
-												<p><span>Event Date(s): </span>Sep 17 2021-Sep 26 2021</p>
-												<p><span>Type of Event: </span>Theatre Performance</p>
-												<p><span>Venue: </span>Outdoor — ASF Grounds</p>
-												<p><span>City: </span>Montgomery</p>
-												<p><span>Price: </span>$40</p>
-												<p><span>Reference Link: </span><a href="https://asf.net/shoebox-picnic-roadside" target="_blank">https://asf.net/shoebox-picnic-roadside</a></p>
+												<p><span>By: </span><?php echo get_post_meta($post,'author',true);?></p>
+												<p><span>Directed by: </span><?php echo get_post_meta($post,'director',true);?></p>
+												<p><span>Event Date(s): </span><?php echo get_post_meta($post,'start_date',true);?></p>
+												<p><span>Type of Event: </span><?php echo get_post_meta($post,'type_of_event',true);?></p>
+												<p><span>Venue: </span><?php echo get_post_meta($post,'venues_for_performance',true);?></p>
+												<p><span>City: </span><?php echo get_post_meta($post,'city',true);?></p>
+												<p><span>Price: </span><?php echo get_post_meta($post,'price',true);?></p>
+												<p><span>Reference Link: </span><a href="<?php echo get_post_meta($post,'reference_link',true);?>" target="_blank"><?php echo get_post_meta($post,'reference_link',true);?></a></p>
 											</div>
 											<div class="col-md-6 event-img">
-												<img src="https://www.americantheatre.org/wp-content/uploads/shoebox.jpeg" alt="">
+											<?php if (has_post_thumbnail()) {?>
+                                <?php $image = wp_get_attachment_image_src(get_post_thumbnail_id($post), 'full');?>
+                                    <a href="<?php echo get_the_permalink($post); ?>"><img src="<?php echo $image[0]; ?>"  alt=""/></a>
+                                <?php }?>
+												<!-- <img src="https://www.americantheatre.org/wp-content/uploads/shoebox.jpeg"> -->
 											</div>
 										</div>
+										<div class=" row event-detail event-description"><p><span>Description: </span>
+										<?php echo the_content($post);?></p></div>										
 									</div>
 								<?php endforeach; ?>
 
@@ -266,5 +293,22 @@ foreach( $data_s as $state )  :
 		<?php endforeach; ?>
 		
 	
-<?php endforeach;
+<?php endforeach;?>
+</div><!-- #content -->
+
+</section><!-- #primary -->
+<script>
+    jQuery(document).ready(function(){
+        // jQuery('.panel').hide();
+        jQuery(document).on('click','#accordion button', function(){
+            let idssss = jQuery(this).data('id');
+console.log( jQuery(this).closest('.event-detail').find('#' +  idssss ) );
+            jQuery(this).closest('.event-detail').find('#' +  idssss ).toggle();
+        } );
+    });
+    </script>
+<?php
+get_sidebar('content');
+get_sidebar();
 get_footer();
+?>
