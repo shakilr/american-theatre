@@ -1,7 +1,6 @@
 <?php /* Template Name: 1222 Events*/ ?>
 
 
-
 <link rel="stylesheet" href="https://pro.fontawesome.com/releases/v5.10.0/css/duotone.css" integrity="sha384-R3QzTxyukP03CMqKFe0ssp5wUvBPEyy9ZspCB+Y01fEjhMwcXixTyeot+S40+AjZ" crossorigin="anonymous"/>
 <link rel="stylesheet" href="https://pro.fontawesome.com/releases/v5.10.0/css/fontawesome.css" integrity="sha384-eHoocPgXsiuZh+Yy6+7DsKAerLXyJmu2Hadh4QYyt+8v86geixVYwFqUvMU8X90l" crossorigin="anonymous"/>
 <style>
@@ -110,450 +109,162 @@
 }
 </style>
 <?php
+get_header(); 
+$args 	= array();
 
-$args 	= array();
 $states = array();
-$args 	= array();
+$venues = array();
+
 $from 	= get_field('pre_events_start_date', 'option');
 $to 	= get_field('pre_events_end_date', 'option');
 
 $args = [
-	'post_type'=>'events'
+	'post_type'		=>'events',
+	'post_status' 	=> 'publish',
+	'posts_per_page' => -1,
+
 ];
 
+$args['meta_query'][] = array(
+	'type'    	=> 'DATE',
+	'key' 		=> 'start_date',
+	'value' 	=> [$from,$to],
+	'compare' 	=> 'BETWEEN',
+);
+
+$args['meta_query'][] = array(
+	'key' 		=> 'state',
+	'value' => '',
+	'compare' 	=> '!=',
+);
+
+$args['meta_query'][] = array(
+	'key' 		=> 'companys_name',
+	'value' => '',
+	'compare' 	=> '!=',
+);
+
+$data_s  = $states = $venue =  [];
 $query = new WP_Query($args);
-echo '<pre>';
-print_r($query);
-echo '</pre>';
+
+	while( $query->have_posts() )
+ {
+	$query->the_post();
 
 
-exit;
+	if ( ! in_array( get_post_meta( $post->ID, 'state', true ), $states ) ) {
+		$states[] = get_post_meta( $post->ID, 'state', true );
+		$data_s[]['state'] = get_post_meta( $post->ID, 'state', true );
+	}
+	$skey = array_search(get_post_meta( $post->ID, 'state', true ), $states );
 
-$getData = array();
-$from = get_field('pre_events_start_date', 'option');
-$to = get_field('pre_events_end_date', 'option');
-
-//print_r($from); echo '<br/> end date:';
-//print_r($to);
-//exit;
-
-$getStates = $wpdb->get_results('SELECT post_id,meta_value from `wp_postmeta` where `meta_key` = "state" and meta_value != "" GROUP BY post_id  ORDER BY meta_value  ');
-// echo '<pre>'; print_r($getStates); exit();
-
-$alphaArray = array();
-foreach($getStates as $key => $states){
-	$value = $states->meta_value;
-	$post_id = $states->post_id;
-	if (!in_array(strtolower($value[0]), $alphaArray)){
-		$alphaArray[] = strtolower($value[0]);
-	}	
-
-	$getCompanyDetails = $wpdb->get_results('SELECT meta_key,meta_value from `wp_postmeta` where `meta_key` = "companys_name" and post_id  = "'.$post_id.'"');
-	
-	$getdate = $wpdb->get_results('SELECT m.meta_key,m.meta_value from `wp_postmeta` m INNER join wp_posts p on p.ID = m.post_id
-	where  `meta_key` = "start_date" and  post_id  = "'.$post_id.'" and p.post_status = "publish" ');
-	
-	//$s_date = date("Y-m",strtotime($getdate[0]->meta_value));
-	$s_date = "2021-08-01";
-
-	if($s_date >= $from && $s_date <= $to) {
-	//print_r($from .' to '.$to.' & the date is: '.$s_date);
-	//exit;		
-		$j = 0;
-		foreach($getCompanyDetails as $company){
-			if (array_key_exists($value, $getData)) {
-				$getData[$value][$j]['name'].= ",".$company->meta_value;
-			}else {
-				$getData[$value][$j]['name'] = $company->meta_value;
-			}		
-			$j++;
+	if ( $skey !== false) {
+		if ( ! in_array( get_post_meta( $post->ID, 'companys_name', true ), array_column($venue, 'title') ) ) {
+			$venue[]['title'] = get_post_meta( $post->ID, 'companys_name', true );
+			$data_s[$skey]['venue'][]['title'] = get_post_meta( $post->ID, 'companys_name', true );
 		}
 	}
+
+	if ( is_array( array_column($venue, 'title')  )) {
+		$vkey = @array_search(get_post_meta( $post->ID, 'companys_name', true ),  array_column($data_s[$skey]['venue'], 'title') );
+		if ( $vkey !== false) {
+			$data_s[$skey]['venue'][$vkey]['posts'][] = get_the_ID();
+		}	
+
+	}
+	
 }
-//echo '<pre>'; print_r($getData); exit();
-//echo "<pre>"; print_r($alphaArray); exit;
-// foreach($getData as $state => $stateValue){
-// 	$new = explode(",",$stateValue[0]['name']);
-// 	natcasesort($new);
-// 	echo "<pre>"; print_r(array_unique($new)); 
-// 	foreach($new as $v){
-// 	  //echo $v.'<br>';
-// 	}
-// }
-// exit;
-//echo "<pre>"; print_r($getData);
-//$result = array_map(fn($v) => array_combine($keys, $v), $getData);
-//echo "<pre>"; print_r($result);
 
-//exit;
+$prices = array_column($data_s, 'title');
+array_multisort($data_s);
+// echo '<pre>';
+// print_r($data_s);
+// print_r($prices);
 
+$last_char = '';
+$aplha_output = '';
+foreach( $data_s as $alpha_char )  { 
 
-// $args = array(
-// 	'post_type'   => 'events',
-// 	'posts_per_page' => -1,
-// 	'meta_key' => 'state',
-// 	'orderby'  => 'meta_value',
-// 	'order'    => 'ASC',
-// 	'meta_query' => array(
-// 		'relation' => 'AND',
-// 		array(
-// 			'key' => 'start_date',
-// 			'value' => $from,
-// 			'compare' => '>=',
-// 			'type' => 'date'
-// 		),
-// 		array(
-// 			'key' => 'end_date',
-// 			'value' => $to,
-// 			'compare' => '<=',
-// 			'type' => 'date'
-// 		)
-// 	)
-// );
+	if ( ! $last_char || $last_char !== $alpha_char['state'][0] ) {
+		$last_char = $alpha_char['state'][0];
+		// echo $alpha_char['state'][0];
+		$aplha_output .= '<li style="display:inline-block; margin-right:15px">';
 
-// global $wpdb;
+		$aplha_output .= "<a class=\"alphaBtn\" href=\"#tab-{$alpha_char['state'][0]}\">";
+		$aplha_output .= $alpha_char['state'][0];
+		$aplha_output .= '</a>';
+		
+		$aplha_output .= '</li>';
+	}
+	
+}
+
+if ( $aplha_output ) {
+	echo "<ul class=\"pagination\" style=\"margin-left: 175px;\">{$aplha_output}</ul>";
+}
 
 
-//exit;
-
-//$eventPosts = get_posts($args);
-
-//echo "<pre>"; print_r($eventPosts); echo "</pre>"; exit;
-// $all_states = array();
-// foreach ($eventPosts as $_state) {
-// 	$state_ = get_post_meta($_state->ID, 'state', true);
-// 	array_push($all_states, $state_);
-// }
-// $all_states = array_unique($all_states);
-//echo "<pre>"; print_r($all_states);exit;
-
-$qo = get_queried_object();
-
-
-get_header(); ?>
-
-<section id="primary" class="content-area">
-	<div align="center">  
-		<?php  
-			echo '<ul class="pagination" style="margin-left: 175px;">';  
-			$i = 1;
-			foreach($alphaArray as $alphabet){  
-				echo '<li style="display:inline-block; margin-right:15px"><a id="alphaBtn-'.$i.'" class="alphaBtn" href="#tab-' . $alphabet . '">'.ucfirst($alphabet).'</a></li>';  
-				//echo '<li style="display:inline-block; margin-right:15px" class="azbutton" id = "tab-' . $alphabet . '">'.ucfirst($alphabet).'</li>';  
-				$i++;
-			}  
-			echo '</ul>';  
-		?>  
-	</div> 
-	<div id="content" class="site-content" role="main">
-
-		<?php if (have_posts()) : ?>
-
-			
-			<header class="archive-header" style="float:left">
-				<h1 class="archive-title"><?php printf(__('%s', 'ridizain'), single_cat_title('', false)); ?></h1>
-				<h1 class="archive-title">
-					<?php $from = date("Y",strtotime($from)); $to = date("Y",strtotime($to));  echo $from; echo "-"; echo $to; ?>
-					<?php //print_r($from); exit;?>
-				</h1>
-              <div class="taxonomy-description" data-uw-styling-context="true"><p data-uw-styling-context="true">
-				  <?php echo category_description( get_category_by_slug( 'onstage-now' )->term_id ); ?> 
-			  </div>
-				
-
-				<?php
-				$term_description = term_description();
-				if (!empty($term_description)) :
-					printf('<div class="taxonomy-description">%s</div>', $term_description);
-				endif;
-				?>
-			</header>
-			
-			<div style="float:right">
-			<div class="loader" style="display:none"></div>
-				<!-- <input type="submit" value="Export" class="btn btn-success" data-id="acc_<?php echo $i; ?>" data-state="<?php echo $state; ?>" data-venue="<?php the_field('companys_name') ?>">
-				<a href="javascript:void(0)" id="dlbtn" style="display: none;">
-					<button type="button" id="mine">Export</button>
-				</a> -->
-			</div>
-
-			<?php
-			$j = 1;
-			$tmp = '';
-			foreach($getData as $state => $stateValue){
-			//$arrUniqueVenu = array();
-			//$i = 1;
-			//$getStates = $wpdb->get_results('SELECT * from `wp_postmeta` where `meta_key` = "state" and meta_value != "" GROUP BY meta_value ORDER BY meta_value  ');
-           //echo "<pre>"; print_r($getStates); echo "</pre>"; exit;
-			//foreach($getStates as $key => $states){
-				//echo $states->meta_value."<br>";
-				//$value = $states->meta_value;
-                
-                //echo "<pre>"; print_r($getCompanyDetails);exit;
-
-            
-			//foreach ($eventPosts as $post) {
-				//setup_postdata($post);
-				//$state = get_field('state');
-				//if ($state != $stateGroup) {
-					//echo "<pre>"; print_r($post); echo "</pre>";
-					// echo "<br>";
-					$tbs = strtolower($state[0]);
-					if(in_array($tbs,$alphaArray)){
-						$tbs = $tbs;
-					}
-					?>
-	</div>
-
+foreach( $data_s as $state )  :
 	
 
-	<div class="events events-<?php echo $state; ?>" id="tab-<?= $tbs ?>" style="margin-left:255px">
+	if ( $last_char !== $state['state'][0] ) {
+		echo $last_char;
+		echo '</div>';
+	}
+	
+	if ( ! $last_char || $last_char !== $state['state'][0] ) {
+		$last_char = $state['state'][0];
+		echo '<div class="events events-' . $last_char . '" id="tab-' . $last_char . '" style="margin-left:255px">';
+	}
+
+?>
+	
 		<h4 class="state_name" style="text-align: left;">
 			<span style="color: #993300; float:left;">
-				<strong><?php echo str_replace('-',' ',$state); ?></strong>
+				<strong><?php echo str_replace('-',' ',$state['state']); ?></strong>
 			</span>
 		</h4>
-	<?php
-					//$stateGroup = $state;
-				//}
 
+		<?php
+			foreach( $state['venue'] as $key => $location ) :
+				$id = str_replace( ' ', '', strtolower($state['state']) ) . '-' . $key;
+		?>
+			<div class="row not_empty">
+				<div class="col-md-12">
+					<div class="event-detail" id="accordion">
+						<button type="button" class="accordion" data-id="acc_<?php echo $id; ?>"><?php echo $location['title']; ?></button>
 
-				// if (in_array(get_field('companys_name'), $arrUniqueVenu)) {
-				// 	continue;
-				// }
-				// $arrUniqueVenu[] = get_field('companys_name');
-				//$getCompanyDetails = $wpdb->get_results('SELECT * from `wp_postmeta` where `meta_key` = "companys_name" and meta_value LIKE "%'.$value.'%" GROUP BY meta_value ORDER BY meta_value  ');
-				//foreach($getCompanyDetails as $company) {
+						<?php if ( count( $location['posts'] )) : ?>
+							<div class="panel" style="display:none; "id="acc_<?php echo $id; ?>">
 						
-				$new = explode(",",$stateValue[0]['name']);
-				$lower_input = array_map('strtolower', $new);
-				// $result = array_unique($lower_input);
-				// natcasesort($result);
-$result[] = '';
-foreach($lower_input as $single){
-	$single = trim($single);
-	if( empty($single) ){ continue;}
-	$result[] .= $single;
-}
-// echo '<pre>';
-// print_r($result);
-// echo '</pre>';
+								<?php foreach( $location['posts'] as $post ) : ?>
+									<div class="panel status-" id="content_1">
+										<div class="row details">
+											<div class="col-md-6 description">
+												<p style="font-weight: bold;font-style: italic;"><?php echo get_the_title($post);?></p>
+												<p><span>By: </span>Deneen Reynolds-Knott</p>
+												<p><span>Directed by: </span>Tiffany Nichole Greene</p>
+												<p><span>Event Date(s): </span>Sep 17 2021-Sep 26 2021</p>
+												<p><span>Type of Event: </span>Theatre Performance</p>
+												<p><span>Venue: </span>Outdoor — ASF Grounds</p>
+												<p><span>City: </span>Montgomery</p>
+												<p><span>Price: </span>$40</p>
+												<p><span>Reference Link: </span><a href="https://asf.net/shoebox-picnic-roadside" target="_blank">https://asf.net/shoebox-picnic-roadside</a></p>
+											</div>
+											<div class="col-md-6 event-img">
+												<img src="https://www.americantheatre.org/wp-content/uploads/shoebox.jpeg" alt="">
+											</div>
+										</div>
+									</div>
+								<?php endforeach; ?>
 
-				$n = 1;
-
-				foreach(array_unique($result, SORT_STRING) as $v){
-					// $v = trim($v);
-					// echo '<pre>';
-					// print_r($result);
-					// echo '</pre><hr><pre>';
-					// print_r(array_unique($result));
-					// if($v === $v){  $d_none = "display:none !important;";}
-					// echo '</pre>';
-					$i = rand(1,200000);
-$n++;
-		
-	?>
-
-	<div class="row not_empty item_<?php echo $n;?> <?php echo $v?>">
-		<div class="col-md-12">
-			<div class="event-detail" id="accordion">
-			<?php if(get_field('companys_name') == 'Chance Theater' || get_field('companys_name') == 'Arena Stage' || get_field('companys_name') == 'Jobsite Theater' || get_field('companys_name') == 'Centenary Stage Company'){
-				echo '';
-			}else{ 			//	echo "========="; the_field('start_date');echo "=========";the_field('end_date');				?>
-<button type="button" class="accordion" data-id="acc_<?php echo $i; ?>" data-state="<?php echo $state; ?>"><?php echo $v; ?></button>
-				<?php 			} ?>
-				<!-- first -->
-				<div class="panel" style="display: none" id="acc_<?php echo $i; ?>">
+							</div>
+						<?php endif; ?>
+					</div>
 				</div>
-
-				<!-- second -->
 			</div>
-		</div>
-		<!-- third -->
-	</div>
-
-<?php
-}
-$j++;
-			}
-?>
-
-<!-- waseh code ends here -->
-
-<?php
-			// Start the Loop.
-			//while (have_posts()) : the_post();
-
-			/*
-					 * Include the post format-specific template for the content. If you want to
-					 * use this in a child theme, then include a file called called content-___.php
-					 * (where ___ is the post format) and that will be used instead.
-					 */
-			// get_template_part('content', get_post_format());
-
-			//endwhile;
-		// Previous/next page navigation.
-		// ridizain_paging_nav();
-
-		else :
-		// If no content, include the "No posts found" template.
-		// get_template_part('content', 'none');
-
-		endif;
-?>
-
-
-	</div><!-- #content -->
-
-</section><!-- #primary -->
-
-<script>
-	jQuery(document).ready(function($) {
-
-		jQuery(document).on('click', 'a[href^="#"]', function(e) {
-			// target element id
-			var id = jQuery(this).attr('href');
-			
-			// target element
-			var $id = jQuery(id);
-			if ($id.length === 0) {
-				return;
-			}
-			
-			// prevent standard hash navigation (avoid blinking in IE)
-			e.preventDefault();
-			
-			// top position relative to the document
-			var pos = $id.offset().top-350;
-			
-			// animated top scrolling
-			jQuery('body, html').animate({scrollTop: pos});
-		});
-
-		jQuery('#load-more').on('click', function(e) {
-			e.preventDefault();
-
-			var _this = jQuery(this);
-			var curr_page = parseInt(_this.attr('data-page'));
-			// var cat = _this.attr('data-cat');
-
-			var data = {
-				'action': 'load_more',
-				'page': curr_page,
-				'tax': '<?php echo $qo->taxonomy; ?>',
-				'tax_slug': '<?php echo $qo->slug; ?>',
-			};
-
-			jQuery.ajax({
-				url: '/wp-admin/admin-ajax.php',
-				data: data,
-				type: 'POST',
-				beforeSend: function(xhr) {
-					console.log('Loading...');
-				},
-				success: function(resp) {
-
-					console.log(resp);
-					// return;
-					jQuery('#content').append(resp);
-					// console.log(resp);
-
-					var next_page = curr_page + 1;
-					// console.log(curr_page, next_page);
-					_this.attr('data-page', next_page);
-				}
-			})
-		});
-	});
-</script>
-
-<?php
-get_sidebar('content');
-get_sidebar();
+		<?php endforeach; ?>
+		
+	
+<?php endforeach;
 get_footer();
-?>
-
-<script>
-	jQuery(".accordion").click(function() {
-		console.log('clicked');
-		var venuName = jQuery(this).text();
-		var statName = jQuery(this).attr('data-state');
-		var divID = jQuery(this).attr('data-id');
-
-		jQuery.get(ajaxurl,{
-			'action': 'loadDynamicContenst1',
-			'venuName': venuName,
-			'statName': statName
-		},
-		function(msg) {
-			console.log(msg);
-			jQuery('#' + divID).html(msg);
-		});
-	});
-
-	jQuery('.btn-success').click(function() {
-		var venuName = jQuery(this).attr('data-venue');
-		var statName = jQuery(this).attr('data-state');
-		var divID = jQuery(this).attr('data-id');
-		jQuery('.loader').show();
-
-		jQuery.get(ajaxurl, {
-				'action': 'getCSVdata'
-			},
-			
-			function(msg) {
-				console.log(msg);
-				jQuery('.loader').hide();
-				setTimeout(function() {
-					var dlbtn = document.getElementById("dlbtn");
-					var file = new Blob([msg], {type: 'text/csv'});
-					dlbtn.href = URL.createObjectURL(file);
-					dlbtn.download = 'theatre_shows.csv';
-					jQuery( "#mine").click();
-				}, 2000);
-			});
-	});
-	// beforeSend: function (){
-	// 			alert('abc');
-	// 		},
-
-	var acc = document.getElementsByClassName("accordion");
-	var i;
-
-	for (i = 0; i < acc.length; i++) {
-		acc[i].addEventListener("click", function() {
-			this.classList.toggle("active");
-			var a = jQuery(this).attr('data-id');
-			jQuery('#' + a).toggle();
-			var panel = this.nextElementSibling;
-			if (panel.style.display === "block") {
-				panel.style.display = "none !important";
-			} else {
-				panel.style.display = "block !important";
-			}
-		});
-	}
-
-	jQuery(".events").each(function() {
-		if (jQuery(this).children(".not_empty").length == 0) {
-			jQuery(this).hide();
-		}
-	});
-
-	// window.addEventListener("scroll", function(){  console.log(scrollY)  })
-	// jQuery(document).ready(function($) {
-	// 	jQuery('.alphaBtn').click(function(){
-	// 		window.addEventListener("scroll", function(){  console.log(scrollY)  })
-	// 	});
-	// });
-</script>
-
-<style>
-	.panel {
-		display: block;
-	}
-
-	.hide {
-		display: none;
-	}
-</style>

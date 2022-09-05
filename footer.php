@@ -9,7 +9,7 @@
  * @since Ridizain 1.0
  */
 ?>
-   
+  
 	
 		</div><!-- #main -->
 </div><!-- #page -->
@@ -96,6 +96,17 @@ jQuery(document).ready(function(){
         console.log(realTitle[1]);
     });
 </script>
+
+<script>
+    jQuery(document).ready(function(){
+        // jQuery('.panel').hide();
+        jQuery(document).on('click','#accordion button', function(){
+            let idssss = jQuery(this).data('id');
+console.log( jQuery(this).closest('.event-detail').find('#' +  idssss ) );
+            jQuery(this).closest('.event-detail').find('#' +  idssss ).toggle();
+        } );
+    });
+    </script>
 
 </body>
 </html>
