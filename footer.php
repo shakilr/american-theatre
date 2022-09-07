@@ -30,17 +30,17 @@
 <script type="text/javascript">
 jQuery(document).ready(function(){
 
-    jQuery.getJSON("https://api.ipify.org?format=jsonp&callback=?",
-      function(json) {
-        var myIp = json.ip;
-        jQuery("div").each(function(){
-        jQuery("#"+this.id).load("https://tcg.addyshack.com/index.cfm?e=view-ad&gid="+this.id+"&ipAddress="+myIp);
+//     jQuery.getJSON("https://api.ipify.org?format=jsonp&callback=?",
+//       function(json) {
+//         var myIp = json.ip;
+//         jQuery("div").each(function(){
+//         jQuery("#"+this.id).load("https://tcg.addyshack.com/index.cfm?e=view-ad&gid="+this.id+"&ipAddress="+myIp);
 			
-		//console.log("ids: "+this.id);	
+// 		//console.log("ids: "+this.id);	
 			
-      });
-    }
-    );
+//       });
+//     }
+//     );
 		
 });
 </script>
@@ -48,7 +48,7 @@ jQuery(document).ready(function(){
 <script>
 	var galleries = {};
  
-    jQuery('.gallery').each(function(i,item){
+		jQuery('.gallery').each(function(i,item){
         var id = jQuery(this).attr('id');
         var imgs = Array();
         var children = jQuery(this).find('.gallery-item');
@@ -64,6 +64,7 @@ jQuery(document).ready(function(){
         })
         galleries[id] = imgs;
     });
+    
 	</script>
 
 <script id="carousel-template" type="text/x-handlebars-template">
@@ -86,15 +87,6 @@ jQuery(document).ready(function(){
                 href="#"><span class="fa fa-circle" aria-hidden="true"></span></a>
         {{/each}}
         </div> </div>
-</script>
-<script>
-    jQuery( document ).ready(function() {
-        console.log( "ready!" );
-        var catArchiveTitle = jQuery('.archive-title').text();
-        var realTitle = catArchiveTitle.split(':');
-        jQuery('.archive-title').text(realTitle[1]);
-        console.log(realTitle[1]);
-    });
 </script>
 
 </body>

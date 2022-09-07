@@ -1,4 +1,9 @@
 <?php
+function generate_setup(){
+	add_image_size( 'sk-thumbnail', 300, 200, true );
+
+}
+add_action( 'after_setup_theme', 'generate_setup' );
 /*additional widgets for ads and for TCG icon. Added by Diep Tran. June 2014*/
 if (function_exists('register_sidebar')) {
   register_sidebar(array(
@@ -835,5 +840,12 @@ if (function_exists('acf_add_options_page')) {
     )
   );
 }
+//////////////////
 
+add_filter('use_block_editor_for_post', '__return_false', 10);
+add_theme_support( 'block-templates' );
+// Disables the block editor from managing widgets in the Gutenberg plugin.
+add_filter( 'gutenberg_use_widgets_block_editor', '__return_false' );
+// Disables the block editor from managing widgets.
+add_filter( 'use_widgets_block_editor', '__return_false' ); 
 ?>

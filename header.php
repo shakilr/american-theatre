@@ -30,7 +30,7 @@
 	<title><?php bloginfo('name'); ?> | <?php is_front_page() ? bloginfo('description') : wp_title(''); ?></title>
 	<link rel="profile" href="http://gmpg.org/xfn/11">
 	<link rel="pingback" href="<?php bloginfo( 'pingback_url' ); ?>">
-	<script type="text/javascript" src="validate.js"></script>
+	<?php /* <script type="text/javascript" src="validate.js"></script> */ ?>
   <script type="text/javascript" src="/wp-content/themes/ridizain-child/functions.js"></script>
 	<?php wp_head(); ?>
   

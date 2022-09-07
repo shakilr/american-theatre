@@ -12,10 +12,11 @@
 
 if ($_SERVER['REQUEST_URI'] == '/category/onstage-now/') {
 
-?>
+	get_header(); ?>
 
-	<link rel="stylesheet" href="https://pro.fontawesome.com/releases/v5.10.0/css/duotone.css" integrity="sha384-R3QzTxyukP03CMqKFe0ssp5wUvBPEyy9ZspCB+Y01fEjhMwcXixTyeot+S40+AjZ" crossorigin="anonymous" />
-	<link rel="stylesheet" href="https://pro.fontawesome.com/releases/v5.10.0/css/fontawesome.css" integrity="sha384-eHoocPgXsiuZh+Yy6+7DsKAerLXyJmu2Hadh4QYyt+8v86geixVYwFqUvMU8X90l" crossorigin="anonymous" />
+
+	<link rel="stylesheet" href="https://pro.fontawesome.com/releases/v5.10.0/css/duotone.css" integrity="sha384-R3QzTxyukP03CMqKFe0ssp5wUvBPEyy9ZspCB+Y01fEjhMwcXixTyeot+S40+AjZ" async crossorigin="anonymous" />
+	<link rel="stylesheet" href="https://pro.fontawesome.com/releases/v5.10.0/css/fontawesome.css" integrity="sha384-eHoocPgXsiuZh+Yy6+7DsKAerLXyJmu2Hadh4QYyt+8v86geixVYwFqUvMU8X90l"  async crossorigin="anonymous" />
 	<style>
 		html {
 			scroll-behavior: smooth !important;
@@ -134,15 +135,12 @@ if ($_SERVER['REQUEST_URI'] == '/category/onstage-now/') {
 			clear: both;
 			margin-top: 40px;
 		}
-	</style>
-	<?php
-	get_header(); ?>
+	</style> 
 	<section id="primary" class="content-area">
 		<?php
-		$args 	= array();
+		$title = explode( ':', single_cat_title('', false));
 
-		$states = array();
-		$venues = array();
+							
 
 		$from = get_field('events_start_date', 'option');
 		$to = get_field('events_end_date', 'option');
@@ -238,7 +236,9 @@ if ($_SERVER['REQUEST_URI'] == '/category/onstage-now/') {
 		} ?>
 		<div id="content" class="site-content" role="main">
 			<header class="archive-header" style="float:left">
-				<h1 class="archive-title"><?php printf(__('%s', 'ridizain'), single_cat_title('', false)); ?></h1>
+				<h1 class="archive-title">
+					<?php printf(__('%s', 'ridizain'), $title[1] );?>
+				</h1>
 				<!-- <h1 class="archive-title">
 					<?php $from = date("Y", strtotime($from));
 					$to = date("Y", strtotime($to));
@@ -255,10 +255,10 @@ if ($_SERVER['REQUEST_URI'] == '/category/onstage-now/') {
 
 
 				<?php
-				$term_description = term_description();
-				if (!empty($term_description)) :
-					printf('<div class="taxonomy-description">%s</div>', $term_description);
-				endif;
+				//$term_description = term_description();
+				//if (!empty($term_description)) :
+					//printf('<div class="taxonomy-description">%s</div>', $term_description);
+				//endif;
 				?>
 			</header>
 			<?php
@@ -341,12 +341,17 @@ if ($_SERVER['REQUEST_URI'] == '/category/onstage-now/') {
 														</p>
 													</div>
 													<div class="col-md-6 event-img">
-														<?php if (has_post_thumbnail()) { ?>
+														<?php if (has_post_thumbnail()) : 
+															$url = wp_get_attachment_image_url( get_post_thumbnail_id(), 'sk-thumbnail' );
+
+	?>
+														
+	<?php if ( get_headers($url)[0] == 'HTTP/1.1 200 OK') : ?>
 															
 															<a href="<?php echo get_the_permalink(); ?>">
-																<?php echo wp_get_attachment_image(get_post_thumbnail_id(), 'full') ; ?>
+																<?php the_post_thumbnail('sk-thumbnail'); ?>
 														</a>
-														<?php } ?>
+														<?php endif; ?>					<?php endif; ?>
 														<!-- <img src="https://www.americantheatre.org/wp-content/uploads/shoebox.jpeg"> -->
 													</div>
 												</div>
@@ -369,21 +374,22 @@ if ($_SERVER['REQUEST_URI'] == '/category/onstage-now/') {
 		</div><!-- #content -->
 
 	</section><!-- #primary -->
-	<script>
+	
+	<?php
+// 	get_sidebar('content');
+	get_sidebar();
+	get_footer();
+	?>
+<script>
 		jQuery(document).ready(function() {
 			// jQuery('.panel').hide();
 			jQuery(document).on('click', '#accordion button', function() {
 				let idssss = jQuery(this).data('id');
 				jQuery(this).closest('.event-detail').find('#' + idssss).toggle();
+				jQuery(this).find('.accordion').toggleClass('active');
 			});
 		});
 	</script>
-	<?php
-// 	get_sidebar('content');
-// 	get_sidebar();
-	get_footer();
-	?>
-
 <?php
 
 } else {
