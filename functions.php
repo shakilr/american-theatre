@@ -292,7 +292,7 @@ function loadDynamicContenst()
   $get_post_id = array();
   global $wpdb;
   
-  echo $get_post_id_q = 'SELECT B.post_id from `wp_postmeta` A, `wp_postmeta` B 
+  $get_post_id_q = 'SELECT B.post_id from `wp_postmeta` A, `wp_postmeta` B 
   where A.`meta_key` = "state" and (A.`meta_value` like "%'.$s_name.'%" or A.`meta_value` like "%'.$state2.'%") and B.`meta_key` = "companys_name" and B.`meta_value` LIKE "%'.$v_name.'%" and B.`post_id` = A.`post_id` '.$limit.'';
   
   $get_post_id = $wpdb->get_results($get_post_id_q);
@@ -323,7 +323,8 @@ function loadDynamicContenst()
 
   foreach($get_post_id as $post_id){
    // echo "SELECT `ID`,`post_content`,`post_title` from `wp_posts` where `ID` = $post_id->post_id  and post_type = 'events'"; exit;
-    $get_post_table_data = $wpdb->get_results("SELECT `ID`,`post_content`,`post_title` from `wp_posts` where `ID` = $post_id->post_id  and post_type = 'events' and post_status='publish'");
+   $pdq = "SELECT `ID`,`post_content`,`post_title` from `wp_posts` where `ID` = $post_id->post_id  and post_type = 'events' and post_status='publish'";
+    $get_post_table_data = $wpdb->get_results($pdq);
     $parr = json_decode(json_encode($get_post_table_data), true);
 
 //echo '<pre>'; print_r($parr); echo '</pre>';
@@ -498,7 +499,7 @@ function loadDynamicContenst1()
 
   $get_post_id = array();
   global $wpdb;
-  $get_post_id = $wpdb->get_results('SELECT DISTINCT(B.post_id) from `wp_postmeta` A, `wp_postmeta` B 
+  $get_post_id = $wpdb->get_results('SELECT B.post_id from `wp_postmeta` A, `wp_postmeta` B 
   where A.`meta_key` = "state" and (A.`meta_value` like "%'.$s_name.'%" or A.`meta_value` like "%'.$state2.'%") 
   and B.`meta_key` = "companys_name" and B.`meta_value` LIKE "%'.$v_name.'%" and B.`post_id` = A.`post_id` '.$limit.'');
   
@@ -524,10 +525,11 @@ function loadDynamicContenst1()
   $state = '';
   $post_id = '';
   $f_image = '';
+  
 
   foreach($get_post_id as $post_id){
    // echo "SELECT `ID`,`post_content`,`post_title` from `wp_posts` where `ID` = $post_id->post_id  and post_type = 'events'"; exit;
-   $the_q = "SELECT `ID`,`post_content`,`post_title` from `wp_posts` where `ID` = $post_id->post_id  and post_type = 'events' and post_status='publish'";
+    $the_q = "SELECT `ID`,`post_content`,`post_title` from `wp_posts` where `ID` = $post_id->post_id  and post_type = 'events' and post_status='publish'";
     $get_post_table_data = $wpdb->get_results($the_q);
 	
 	//print_r($the_q);
@@ -608,13 +610,14 @@ function loadDynamicContenst1()
   // echo get_the_post_thumbnail_url()
 
   foreach ($post_data as $key => $value) {
-   // echo $key.'<br>';
-   // 
+    //echo $key.'<br>';
+    //echo $value;
+   
    $start_date_f = date("Y-m-d",strtotime($value['start_date']));
    $end_date_f = date("Y-m-d",strtotime($value['end_date']));
     if($start_date_f >= $from && $start_date_f <= $to) {
       if(!empty($value['author']) || !empty($value['director']) || !empty($value['type_of_event']) || !empty($value['venues_for_performance'])){
-        $htmlContenst .= '<div class="panel" id="content_1">';
+        $htmlContenst .= '<div class="panel status-'.$value['post_status'].'" id="content_1">';
         $htmlContenst .= '<div class="row details">';
         $htmlContenst .= '<div class="col-md-6 description">';
         $htmlContenst .= '<p style="font-weight: bold;font-style: italic;">' . $value['title'] . '</p>';
